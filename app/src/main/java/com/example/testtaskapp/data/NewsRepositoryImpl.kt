@@ -13,19 +13,18 @@ class NewsRepositoryImpl @Inject constructor() : NewsRepository {
 
     override val newsSource: BehaviorSubject<Response> = BehaviorSubject.create()
 
-    // Must run on background thread
-    // Method can call ANR exception
-    override fun getNews():Subject<Response> {
+    override fun getNews(): Subject<Response> {
         val subject = BehaviorSubject.create<Response>()
         Executors.newCachedThreadPool().execute {
             getNewsList().forEach { news ->
-                subject.onNext(Response.Loading)
+                subject.onNext(Response.Loading(true))
                 Thread.sleep(generateDelay())
                 if (isErrorNow()) {
                     subject.onNext(Response.Failure(message = "Something went wrong!"))
                 } else {
                     subject.onNext(Response.Success(news))
                 }
+                subject.onNext(Response.Loading(false))
             }
             subject.onComplete()
         }

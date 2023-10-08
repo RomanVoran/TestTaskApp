@@ -2,8 +2,9 @@ package com.example.testtaskapp.presentation
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.view.View.GONE
 import android.widget.SearchView.OnQueryTextListener
+import android.widget.SearchView.VISIBLE
 import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,6 +13,7 @@ import com.example.testtaskapp.R
 import com.example.testtaskapp.databinding.ActivityMainBinding
 import com.example.testtaskapp.entity.News
 import com.example.testtaskapp.presentation.adapters.MainListAdapter
+import com.google.android.material.snackbar.Snackbar
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -32,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         (applicationContext as App).appComponent.inject(this)
         viewModel.fetchNews()
         initView()
-        initObservables()
+        initObservers()
         initListeners()
     }
 
@@ -44,62 +46,70 @@ class MainActivity : AppCompatActivity() {
         }
 
         searchListView.apply {
-            adapter = mainAdapter
+            adapter = searchAdapter
             layoutManager = LinearLayoutManager(this@MainActivity)
             setHasFixedSize(false)
         }
-
-        mainAdapter.submitList(viewModel.newsList)
-        searchAdapter.submitList(viewModel.newsList)
 
     }
 
     private fun initListeners() = with(binding) {
         searchView.setOnQueryTextListener(object : OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-
+                viewModel.updateSearchData(query = query ?: "")
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-
+                viewModel.updateSearchData(query = newText ?: "")
                 return false
             }
 
         })
+        searchView.setOnSearchClickListener {
+            showSearchList()
+        }
+        searchView.setOnCloseListener {
+            hideSearchList()
+            false
+        }
     }
 
-    private fun initObservables() {
-        viewModel.newsData.observe(this) { news ->
-            notifyNews(news)
-            hideLoading()
+    private fun initObservers() {
+        viewModel.mainNewsData.observe(this) { newsList ->
+            mainAdapter.submitList(newsList.toList())
+        }
+        viewModel.searchNewsData.observe(this) { newsList ->
+            searchAdapter.submitList(newsList.toList())
         }
         viewModel.errorData.observe(this) { message ->
             showError(message)
-            hideLoading()
         }
-        viewModel.loadingEvent.observe(this) {
-            showLoading()
+        viewModel.loadingEvent.observe(this) { isLoading ->
+            handleLoading(isLoading)
         }
-    }
-
-    private fun notifyNews(news: News) {
-        Log.d("TEST_TAG", "new news: ${news.title}, list size = ${viewModel.newsList.size}")
-//        mainAdapter.submitList(null)
-        mainAdapter.submitList(viewModel.newsList.toList())
     }
 
     private fun showError(message: String) {
-
+        Snackbar.make(binding.root, "Some error: $message", Snackbar.LENGTH_LONG).show()
     }
 
-    private fun showLoading() {
+    private fun handleLoading(isLoading: Boolean) {
+        if (isLoading) {
 
+        } else {
+
+        }
     }
 
-    private fun hideLoading() {
-
+    private fun showSearchList() {
+        binding.searchListView.visibility = VISIBLE
+        viewModel.fetchSearchNews()
     }
 
+    private fun hideSearchList() {
+        binding.searchListView.visibility = GONE
+        viewModel.stopSearching()
+    }
 
 }
