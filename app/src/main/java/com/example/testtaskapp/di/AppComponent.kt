@@ -6,6 +6,7 @@ import com.example.testtaskapp.presentation.MainActivity
 import dagger.Component
 import dagger.Module
 import dagger.Provides
+import javax.inject.Singleton
 
 @Component(modules = [AppModule::class])
 interface AppComponent {

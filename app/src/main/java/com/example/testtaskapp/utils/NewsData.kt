@@ -1,4 +1,6 @@
-package com.example.testtaskapp.entity
+package com.example.testtaskapp.utils
+
+import com.example.testtaskapp.entity.News
 
 fun getNewsList(): List<News> = listOf(
     News("Заголовок 1", "Новость1"),
@@ -25,7 +27,7 @@ fun getNewsList(): List<News> = listOf(
 
 fun generateDelay(): Long = when ((0..100).random()) {
     in 0..20 -> 0
-    else -> (100..1000).random()
+    else -> (0..1000).random() + 800
 }.toLong()
 
 fun isErrorNow(): Boolean = (0..100).random() < 2

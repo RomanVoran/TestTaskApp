@@ -3,12 +3,15 @@ package com.example.testtaskapp.presentation
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.SearchView.OnQueryTextListener
 import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.testtaskapp.App
 import com.example.testtaskapp.R
 import com.example.testtaskapp.databinding.ActivityMainBinding
 import com.example.testtaskapp.entity.News
+import com.example.testtaskapp.presentation.adapters.MainListAdapter
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -20,24 +23,50 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private val mainAdapter = MainListAdapter()
+    private val searchAdapter = MainListAdapter()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         (applicationContext as App).appComponent.inject(this)
-        viewModel.attach()
+        viewModel.fetchNews()
+        initView()
         initObservables()
         initListeners()
     }
 
-    private fun initListeners() {
-        binding.textView.setOnClickListener {
-
+    private fun initView() = with(binding) {
+        mainListView.apply {
+            adapter = mainAdapter
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            setHasFixedSize(false)
         }
-        binding.textView.text = "Gogadfkjdkjkjhkjh"
+
+        searchListView.apply {
+            adapter = mainAdapter
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            setHasFixedSize(false)
+        }
+
+        mainAdapter.submitList(viewModel.newsList)
+        searchAdapter.submitList(viewModel.newsList)
+
     }
 
-    private fun initView() {
+    private fun initListeners() = with(binding) {
+        searchView.setOnQueryTextListener(object : OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
 
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+
+                return false
+            }
+
+        })
     }
 
     private fun initObservables() {
@@ -55,7 +84,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun notifyNews(news: News) {
-        Log.d("TEST_TAG", "news notify ${news.title}")
+        Log.d("TEST_TAG", "new news: ${news.title}, list size = ${viewModel.newsList.size}")
+//        mainAdapter.submitList(null)
+        mainAdapter.submitList(viewModel.newsList.toList())
     }
 
     private fun showError(message: String) {

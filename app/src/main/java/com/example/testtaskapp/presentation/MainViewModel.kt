@@ -12,6 +12,7 @@ import io.reactivex.schedulers.Schedulers
 
 class MainViewModel(private val newsRepository: NewsRepository) : ViewModel() {
 
+
     val newsData: LiveData<News>
         get() = _newsData
     private val _newsData = MutableLiveData<News>()
@@ -28,9 +29,8 @@ class MainViewModel(private val newsRepository: NewsRepository) : ViewModel() {
         get() = _newsList
     private val _newsList = mutableListOf<News>()
 
-    fun attach() {
+    fun fetchNews() {
         newsRepository.getNews()
-        newsRepository.newsSource
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { response ->

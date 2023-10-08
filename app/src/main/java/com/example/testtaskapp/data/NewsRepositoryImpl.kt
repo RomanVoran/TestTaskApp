@@ -1,10 +1,11 @@
 package com.example.testtaskapp.data
 
 import com.example.testtaskapp.entity.Response
-import com.example.testtaskapp.entity.generateDelay
-import com.example.testtaskapp.entity.getNewsList
-import com.example.testtaskapp.entity.isErrorNow
+import com.example.testtaskapp.utils.generateDelay
+import com.example.testtaskapp.utils.getNewsList
+import com.example.testtaskapp.utils.isErrorNow
 import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.Subject
 import java.util.concurrent.Executors
 import javax.inject.Inject
 
@@ -14,18 +15,20 @@ class NewsRepositoryImpl @Inject constructor() : NewsRepository {
 
     // Must run on background thread
     // Method can call ANR exception
-    override fun getNews() {
+    override fun getNews():Subject<Response> {
+        val subject = BehaviorSubject.create<Response>()
         Executors.newCachedThreadPool().execute {
             getNewsList().forEach { news ->
-                newsSource.onNext(Response.Loading)
+                subject.onNext(Response.Loading)
                 Thread.sleep(generateDelay())
                 if (isErrorNow()) {
-                    newsSource.onNext(Response.Failure(message = "Something went wrong!"))
+                    subject.onNext(Response.Failure(message = "Something went wrong!"))
                 } else {
-                    newsSource.onNext(Response.Success(news))
+                    subject.onNext(Response.Success(news))
                 }
             }
-            newsSource.onComplete()
+            subject.onComplete()
         }
+        return subject
     }
 }
